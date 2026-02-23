@@ -2,6 +2,7 @@
   "name": "kodzero-sdk",
   "version": "0.0.20-beta.1",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "tsc": "tsc -b src/",
     "tsc-watch": "tsc --b --watch src/",

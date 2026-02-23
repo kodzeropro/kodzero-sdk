@@ -15,13 +15,39 @@ export interface FindManyOptions {
     fields?: string[]
 }
 
+export type ModelInstance<
+    T extends { [ReservedKeyNames.ID]: string | null },
+    M = {}
+> = BaseModel<T> & M
+
+export interface ModelClass<
+    T extends { [ReservedKeyNames.ID]: string | null },
+    M = {}
+> {
+    new(data: T): ModelInstance<T, M>
+    get(id: string): Promise<ModelInstance<T, M>>
+    registerMethod<K extends keyof M>(name: K, fn: M[K]): void
+    find(id: string): Promise<T>
+    findMany(options?: FindManyOptions | {}): Promise<T[]>
+    findManyPaginated(options?: FindManyOptions | {}, page?: number, perPage?: number): Promise<PaginatedResult<T>>
+    create(data: T): Promise<T>
+    createMany(data: T[]): Promise<T[]>
+    update(id: string, data: Partial<T>): Promise<T>
+    updateMany(updates: Partial<T>[]): Promise<T[]>
+    delete(id: string): Promise<boolean>
+    deleteMany(ids: string[]): Promise<Record<string, boolean>>
+    distinct(fields: string[], filter?: Record<string, any>): Promise<string[]>
+    host: string
+    collection: string
+}
+
 /**
  * Creates custom model with the specified schema, API options, etc.
  */
 const createModel = <
     T extends { [ReservedKeyNames.ID]: string | null},
     M = {}
->(options: ModelOptions, apiClient: typeof FluidFetch) => {
+>(options: ModelOptions, apiClient: typeof FluidFetch): ModelClass<T, M> => {
     const Model = class extends BaseModel<T> {
         static host = options.host
         static collection = options.collection
@@ -240,27 +266,7 @@ const createModel = <
         }
     }
 
-    // Return type: ModelConstructor<T, M>
-    type ModelInstance = BaseModel<T> & M;
-    type Model = {
-        new(data: T): ModelInstance;
-        get(id: string): Promise<ModelInstance>;
-        registerMethod<K extends keyof M>(name: K, fn: M[K]): void;
-        find(id: string): Promise<T>;
-        findMany(options?: FindManyOptions | {}): Promise<T[]>;
-        findManyPaginated(options?: FindManyOptions | {}, page?: number, perPage?: number): Promise<PaginatedResult<T>>;
-        create(data: T): Promise<T>;
-        createMany(data: T[]): Promise<T[]>;
-        update(id: string, data: Partial<T>): Promise<T>;
-        updateMany(updates: Partial<T>[]): Promise<T[]>;
-        delete(id: string): Promise<boolean>;
-        deleteMany(ids: string[]): Promise<Record<string, boolean>>;
-        distinct(fields: string[], filter?: Record<string, any>): Promise<string[]>;
-        host: string;
-        collection: string;
-    };
-
-    return Model as unknown as Model;
+    return Model as unknown as ModelClass<T, M>
 }
 
 export default createModel

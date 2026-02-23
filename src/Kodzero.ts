@@ -5,6 +5,7 @@ import { ModelOptions } from "./model/BaseModel.js"
 import TokensManagerClass from "./auth/tokens.js"
 import { ReservedKeyNames } from "./constants/reservedKeyNames.js"
 import KodzeroApiError from "./errors/KodzeroApiError.js"
+import type { ModelClass } from "./model/createModel.js"
 
 export interface AutoRefreshOptions {
     /**
@@ -48,7 +49,7 @@ interface Options {
      * const users = await UserModel.findMany()
      * ```
      */
-    autoRefresh?: boolean | AutoRefreshOptions
+    autoRefreshToken?: boolean | AutoRefreshOptions
 }
 
 class Kodzero {
@@ -101,9 +102,9 @@ class Kodzero {
         })
 
         // Set up auto-refresh response middleware if enabled
-        if (options.autoRefresh && this.auth) {
-            const refreshOpts = typeof options.autoRefresh === 'object'
-                ? options.autoRefresh
+        if (options.autoRefreshToken && this.auth) {
+            const refreshOpts = typeof options.autoRefreshToken === 'object'
+                ? options.autoRefreshToken 
                 : {}
             this._setupAutoRefresh(refreshOpts)
         }
@@ -223,7 +224,7 @@ class Kodzero {
         }
     }
 
-    createModel = <T extends { [ReservedKeyNames.ID]: string | null }, M = {}>(options: Omit<ModelOptions, 'host'>) => {
+    createModel = <T extends { [ReservedKeyNames.ID]: string | null }, M = {}>(options: Omit<ModelOptions, 'host'>): ModelClass<T, M> => {
         return createModel<T, M>({...options, host: this.host}, this.api)
     }
 }
